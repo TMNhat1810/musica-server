@@ -1,5 +1,20 @@
+enum Role {
+  admin
+  user
+}
+
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id           String   @id @default(uuid())
+  username     String   @unique
+  display_name String?
+  email        String   @unique
+  password     String
+  role         Role     @default(user)
+  is_active    Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  photo_url    String   @default("https://res.cloudinary.com/dfyjlzwu5/image/upload/v1735060848/default_avatar_kevlcl.png")
+  salt         String
+
+  refresh_tokens RefreshToken?
 }
