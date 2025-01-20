@@ -10,6 +10,7 @@ import { LoginUserDto, RegisterUserDto } from './dtos';
 import { appConfig, jwtConfig } from 'src/configs';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces';
+import { SafeUserDto } from 'src/common/dtos';
 
 @Injectable()
 export class AuthService {
@@ -64,17 +65,13 @@ export class AuthService {
     });
   }
 
-  async getUserProfile(token: string) {
-    const payload: JwtPayload = this.jwtService.verify(token, {
-      secret: jwtConfig.secret,
-    });
-    if (!payload.user_id) throw new BadRequestException('invalid token payload');
-
+  async getUserProfile(id: string) {
     const user = await this.prisma.user.findFirst({
-      where: { id: payload.user_id },
+      where: { id },
     });
 
     if (!user) throw new NotFoundException('user profile not found');
+    return new SafeUserDto(user);
   }
 
   async refreshUserToken(token: string) {

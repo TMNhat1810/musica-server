@@ -28,6 +28,6 @@ export class AuthController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   async getCurrentProfile(@Request() req: any) {
-    return req.user;
+    return this.authService.getUserProfile(req.user.user_id);
   }
 }
