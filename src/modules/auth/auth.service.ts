@@ -60,9 +60,15 @@ export class AuthService {
 
     const salt = genSaltSync(parseInt(appConfig.bcryptSaltRounds));
     const hashedPassword = hashSync(dto.password, salt);
-    return this.prisma.user.create({
+    const _user = await this.prisma.user.create({
       data: { ...dto, salt, password: hashedPassword },
     });
+    const payload: JwtPayload = {
+      username: _user.username,
+      user_id: _user.id,
+      role: _user.role,
+    };
+    return this.signJwtToken(payload);
   }
 
   async getUserProfile(id: string) {
