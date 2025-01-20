@@ -1,7 +1,6 @@
 import {
   BadRequestException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -33,60 +32,49 @@ export class AuthService {
   }
 
   async authenticateUser(dto: LoginUserDto) {
-    try {
-      const { username, password } = dto;
+    const { username, password } = dto;
 
-      const user = await this.prisma.user.findFirst({ where: { username } });
+    const user = await this.prisma.user.findFirst({
+      where: { username },
+    });
 
-      if (!user) throw new NotFoundException();
-      const { salt } = user;
-      const hashedPassword = hashSync(password, salt);
-
-      if (hashedPassword !== user.password.replaceAll(' ', ''))
-        throw new NotFoundException();
-      const payload: JwtPayload = {
-        username: username,
-        user_id: user.id,
-        role: user.role,
-      };
-      return this.signJwtToken(payload);
-    } catch {
-      throw new InternalServerErrorException();
-    }
+    if (!user) throw new NotFoundException();
+    const { salt } = user;
+    const hashedPassword = hashSync(password, salt);
+    if (hashedPassword !== user.password.replaceAll(' ', ''))
+      throw new NotFoundException();
+    const payload: JwtPayload = {
+      username: username,
+      user_id: user.id,
+      role: user.role,
+    };
+    return this.signJwtToken(payload);
   }
 
   async registerUser(dto: RegisterUserDto) {
-    try {
-      const user = await this.prisma.user.findFirst({
-        where: { username: dto.username },
-      });
-      if (user) throw new BadRequestException('username existed');
+    const user = await this.prisma.user.findFirst({
+      where: { username: dto.username },
+    });
+    if (user) throw new BadRequestException('username existed');
 
-      const salt = genSaltSync(parseInt(appConfig.bcryptSaltRounds));
-      const hashedPassword = hashSync(dto.password, salt);
-      return this.prisma.user.create({
-        data: { ...dto, salt, password: hashedPassword },
-      });
-    } catch {
-      throw new InternalServerErrorException();
-    }
+    const salt = genSaltSync(parseInt(appConfig.bcryptSaltRounds));
+    const hashedPassword = hashSync(dto.password, salt);
+    return this.prisma.user.create({
+      data: { ...dto, salt, password: hashedPassword },
+    });
   }
 
   async getUserProfile(token: string) {
-    try {
-      const payload: JwtPayload = this.jwtService.verify(token, {
-        secret: jwtConfig.secret,
-      });
-      if (!payload.user_id) throw new BadRequestException('invalid token payload');
+    const payload: JwtPayload = this.jwtService.verify(token, {
+      secret: jwtConfig.secret,
+    });
+    if (!payload.user_id) throw new BadRequestException('invalid token payload');
 
-      const user = await this.prisma.user.findFirst({
-        where: { id: payload.user_id },
-      });
+    const user = await this.prisma.user.findFirst({
+      where: { id: payload.user_id },
+    });
 
-      if (!user) throw new NotFoundException('user profile not found');
-    } catch {
-      throw new InternalServerErrorException();
-    }
+    if (!user) throw new NotFoundException('user profile not found');
   }
 
   async refreshUserToken(token: string) {
