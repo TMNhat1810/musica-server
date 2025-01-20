@@ -8,8 +8,7 @@ import {
 import { PrismaService } from '../database/services';
 import { hashSync, genSaltSync } from 'bcryptjs';
 import { LoginUserDto, RegisterUserDto } from './dtos';
-import { appConfig } from 'src/configs/app.config';
-import { jwtConfig } from 'src/configs';
+import { appConfig, jwtConfig } from 'src/configs';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from 'src/common/interfaces';
 
