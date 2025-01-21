@@ -1,0 +1,14 @@
+model CommunityPost {
+    id          String   @id @default(uuid())
+    title       String
+    description String?
+    medias      Media[]
+    user_id     String
+    user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    created_at  DateTime @default(now())
+    updated_at  DateTime @updatedAt
+
+    comments Comment[]
+
+    @@index([user_id])
+}

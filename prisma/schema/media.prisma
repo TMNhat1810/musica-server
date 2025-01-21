@@ -1,0 +1,16 @@
+enum MediaType {
+    image
+    video
+    audio
+}
+
+model Media {
+    id                String         @id @default(uuid())
+    url               String
+    created_at        DateTime       @default(now())
+    updated_at        DateTime       @updatedAt
+    community_post    CommunityPost? @relation(fields: [community_post_id], references: [id])
+    community_post_id String?
+
+    post Post[]
+}

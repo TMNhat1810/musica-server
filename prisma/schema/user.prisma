@@ -16,5 +16,8 @@ model User {
   photo_url    String   @default("https://res.cloudinary.com/dfyjlzwu5/image/upload/v1735060848/default_avatar_kevlcl.png")
   salt         String
 
-  refresh_tokens RefreshToken?
+  refresh_tokens  RefreshToken?
+  posts           Post[]
+  comments        Comment[]
+  community_posts CommunityPost[]
 }
