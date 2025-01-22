@@ -17,7 +17,7 @@ model User {
   salt         String
 
   refresh_tokens  RefreshToken?
-  posts           Post[]
+  medias          Media[]
   comments        Comment[]
   community_posts CommunityPost[]
 }

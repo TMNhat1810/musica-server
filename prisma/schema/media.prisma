@@ -1,16 +1,20 @@
 enum MediaType {
-    image
     video
     audio
 }
 
 model Media {
-    id                String         @id @default(uuid())
-    url               String
-    created_at        DateTime       @default(now())
-    updated_at        DateTime       @updatedAt
-    community_post    CommunityPost? @relation(fields: [community_post_id], references: [id])
-    community_post_id String?
+    id            String   @id @default(uuid())
+    title         String
+    description   String?
+    user_id       String
+    media_url     String
+    thumbnail_url String?
+    created_at    DateTime @default(now())
+    updated_at    DateTime @updatedAt
 
-    post Post[]
+    user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    comments Comment[]
+
+    @@index([user_id])
 }

@@ -4,7 +4,7 @@ model Comment {
     user_id           String
     user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
     post_id           String?
-    post              Post?          @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    media             Media?         @relation(fields: [post_id], references: [id], onDelete: Cascade)
     community_post_id String?
     community_post    CommunityPost? @relation(fields: [community_post_id], references: [id], onDelete: Cascade)
 

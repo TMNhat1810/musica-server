@@ -9,10 +9,45 @@ export class CloudinaryService {
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
-        .upload_stream({ folder: 'capstone' }, (error, result) => {
-          if (error) return reject(error);
-          resolve(result);
-        })
+        .upload_stream(
+          { resource_type: 'image', folder: 'capstone/image' },
+          (error: UploadApiErrorResponse, result: UploadApiResponse) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        )
+        .end(file.buffer);
+    });
+  }
+
+  async uploadAudio(
+    file: Express.Multer.File,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { folder: 'capstone/audio' },
+          (error: UploadApiErrorResponse, result: UploadApiResponse) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        )
+        .end(file.buffer);
+    });
+  }
+
+  async uploadVideo(
+    file: Express.Multer.File,
+  ): Promise<UploadApiResponse | UploadApiErrorResponse> {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          { resource_type: 'video', folder: 'capstone/video' },
+          (error: UploadApiErrorResponse, result: UploadApiResponse) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        )
         .end(file.buffer);
     });
   }
