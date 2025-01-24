@@ -4,14 +4,15 @@ enum MediaType {
 }
 
 model Media {
-    id            String   @id @default(uuid())
+    id            String    @id @default(uuid())
     title         String
     description   String?
     user_id       String
     media_url     String
     thumbnail_url String?
-    created_at    DateTime @default(now())
-    updated_at    DateTime @updatedAt
+    type          MediaType
+    created_at    DateTime  @default(now())
+    updated_at    DateTime  @updatedAt
 
     user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
     comments Comment[]

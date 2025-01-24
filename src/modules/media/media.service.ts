@@ -92,6 +92,7 @@ export class MediaService {
         description: description.trim(),
         media_url: media.url,
         thumbnail_url: thumbnail?.url,
+        type: isVideo(mediaFile) ? 'video' : 'audio',
       },
     });
   }
