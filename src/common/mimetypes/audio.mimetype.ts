@@ -5,6 +5,9 @@ export const AudioMimetypes = [
   'audio/flac',
   'audio/aac',
   'audio/midi',
+  'audio/m4a',
+  'audio/mp4',
+  'audio/x-m4a',
 ];
 
 export function isAudio(file: Express.Multer.File): boolean {
