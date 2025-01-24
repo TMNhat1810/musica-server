@@ -26,7 +26,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { folder: 'capstone/audio' },
+          { resource_type: 'video', folder: 'capstone/audio' },
           (error: UploadApiErrorResponse, result: UploadApiResponse) => {
             if (error) return reject(error);
             resolve(result);
