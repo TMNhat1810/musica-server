@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsInt, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
-export class GetPostDto {
+export class GetMediaDto {
   @ApiProperty({
     type: 'string',
     required: false,

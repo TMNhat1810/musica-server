@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
   Request,
@@ -11,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { MediaService } from './media.service';
-import { GetPostDto, UploadPostDto, UploadPostFilesDto } from './dtos';
+import { GetMediaDto, UploadMediaDto, UploadMediaFilesDto } from './dtos';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { isAudio, isImage, isVideo } from 'src/common/mimetypes';
 import { AuthGuard } from '../auth/guards';
@@ -22,9 +23,9 @@ export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Get()
-  async getPosts(@Query() dto: GetPostDto) {
+  async getMedias(@Query() dto: GetMediaDto) {
     if (!dto.user_id) return this.mediaService.getMedias(dto.page, dto.limit);
-    return this.mediaService.getPostsByUserId(dto.user_id, dto.page, dto.limit);
+    return this.mediaService.getMediasByUserId(dto.user_id, dto.page, dto.limit);
   }
 
   @Post()
@@ -60,10 +61,10 @@ export class MediaController {
       },
     ),
   )
-  async uploadPost(
+  async uploadMedia(
     @Request() request: any,
-    @UploadedFiles() files: UploadPostFilesDto,
-    @Body() dto: UploadPostDto,
+    @UploadedFiles() files: UploadMediaFilesDto,
+    @Body() dto: UploadMediaDto,
   ) {
     return this.mediaService.uploadMedia(
       request.user,
@@ -71,5 +72,10 @@ export class MediaController {
       dto.description,
       files,
     );
+  }
+
+  @Get(':id')
+  async getMediaById(@Param('id') id: string) {
+    return this.mediaService.getMediaById(id);
   }
 }

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/services';
-import { UploadPostFilesDto } from './dtos';
+import { UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { isVideo } from 'src/common/mimetypes';
@@ -39,7 +39,23 @@ export class MediaService {
     };
   }
 
-  async getPostsByUserId(user_id: string, page: number, limit: number) {
+  async getMediaById(id: string) {
+    return await this.prisma.media.findFirst({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            display_name: true,
+            photo_url: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getMediasByUserId(user_id: string, page: number, limit: number) {
     const [posts, totalRecords] = await Promise.all([
       this.prisma.media.findMany({
         skip: ((page - 1) * limit) | 0,
@@ -73,7 +89,7 @@ export class MediaService {
     user: JwtPayload,
     title: string,
     description: string,
-    files: UploadPostFilesDto,
+    files: UploadMediaFilesDto,
   ) {
     if (!files.media) throw new BadRequestException('No media file found');
     const mediaFile = files.media[0];
