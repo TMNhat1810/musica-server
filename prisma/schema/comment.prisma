@@ -3,13 +3,17 @@ model Comment {
     content           String
     user_id           String
     user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    post_id           String?
-    media             Media?         @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    media_id          String?
+    media             Media?         @relation(fields: [media_id], references: [id], onDelete: Cascade)
     community_post_id String?
     community_post    CommunityPost? @relation(fields: [community_post_id], references: [id], onDelete: Cascade)
+    reply_to          String?
+    replies           Comment[]      @relation("CommentReplies")
+    parent            Comment?       @relation("CommentReplies", fields: [reply_to], references: [id], onDelete: Cascade)
 
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt
 
-    @@index([post_id])
+    @@index([media_id])
+    @@index([reply_to])
 }

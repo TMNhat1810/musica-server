@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
@@ -110,6 +110,25 @@ export class MediaService {
         thumbnail_url: thumbnail?.url,
         type: isVideo(mediaFile) ? 'video' : 'audio',
       },
+    });
+  }
+
+  async getCommentsByMediaId(id: string) {
+    const media = await this.prisma.media.findFirst({ where: { id: id } });
+    if (!media) throw new NotFoundException('Media not found!');
+
+    return await this.prisma.comment.findMany({
+      where: { media_id: id },
+      include: { replies: true },
+    });
+  }
+
+  async uploadComments(user: JwtPayload, id: string, content: string) {
+    const media = await this.prisma.media.findFirst({ where: { id: id } });
+    if (!media) throw new NotFoundException('Media not found!');
+
+    return await this.prisma.comment.create({
+      data: { user_id: user.user_id, media_id: id, content },
     });
   }
 }

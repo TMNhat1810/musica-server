@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { MediaService } from './media.service';
-import { GetMediaDto, UploadMediaDto, UploadMediaFilesDto } from './dtos';
+import {
+  GetMediaDto,
+  UploadCommentDto,
+  UploadMediaDto,
+  UploadMediaFilesDto,
+} from './dtos';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { isAudio, isImage, isVideo } from 'src/common/mimetypes';
 import { AuthGuard } from '../auth/guards';
@@ -77,5 +82,21 @@ export class MediaController {
   @Get(':id')
   async getMediaById(@Param('id') id: string) {
     return this.mediaService.getMediaById(id);
+  }
+
+  @Get(':id/comment')
+  async getComments(@Param('id') id: string) {
+    return this.mediaService.getCommentsByMediaId(id);
+  }
+
+  @Post(':id/comment')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async uploadComment(
+    @Request() request: any,
+    @Param('id') id: string,
+    @Body() dto: UploadCommentDto,
+  ) {
+    return this.mediaService.uploadComments(request.user, id, dto.content);
   }
 }
