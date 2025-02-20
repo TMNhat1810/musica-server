@@ -119,7 +119,28 @@ export class MediaService {
 
     return await this.prisma.comment.findMany({
       where: { media_id: id },
-      include: { replies: true },
+      include: {
+        replies: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                photo_url: true,
+                display_name: true,
+                username: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            photo_url: true,
+            display_name: true,
+            username: true,
+          },
+        },
+      },
     });
   }
 
