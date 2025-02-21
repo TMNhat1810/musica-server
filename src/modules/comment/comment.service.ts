@@ -12,6 +12,16 @@ export class CommentService {
 
     return this.prisma.comment.create({
       data: { user_id: user.user_id, reply_to: id, content },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            display_name: true,
+            photo_url: true,
+          },
+        },
+      },
     });
   }
 }

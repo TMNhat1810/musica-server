@@ -150,6 +150,17 @@ export class MediaService {
 
     return await this.prisma.comment.create({
       data: { user_id: user.user_id, media_id: id, content },
+      include: {
+        user: {
+          select: {
+            id: true,
+            photo_url: true,
+            display_name: true,
+            username: true,
+          },
+        },
+        replies: true,
+      },
     });
   }
 }
