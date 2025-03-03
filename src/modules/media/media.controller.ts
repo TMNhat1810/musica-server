@@ -29,7 +29,8 @@ export class MediaController {
 
   @Get()
   async getMedias(@Query() dto: GetMediaDto) {
-    if (!dto.user_id) return this.mediaService.getMedias(dto.page, dto.limit);
+    if (!dto.user_id)
+      return this.mediaService.getMedias(dto.page, dto.limit, dto.except);
     return this.mediaService.getMediasByUserId(dto.user_id, dto.page, dto.limit);
   }
 

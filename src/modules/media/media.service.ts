@@ -12,9 +12,10 @@ export class MediaService {
     private readonly cloudinary: CloudinaryService,
   ) {}
 
-  async getMedias(page: number, limit: number) {
+  async getMedias(page: number, limit: number, except?: string) {
     const [medias, totalRecords] = await Promise.all([
       this.prisma.media.findMany({
+        where: { id: { not: except } },
         skip: ((page - 1) * limit) | 0,
         take: limit,
         include: {

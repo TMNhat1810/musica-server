@@ -24,4 +24,9 @@ export class GetMediaDto {
   @IsInt()
   @IsPositive()
   limit: number = 10;
+
+  @ApiProperty({ type: 'string', required: false })
+  @IsOptional()
+  @IsString()
+  except?: string;
 }
