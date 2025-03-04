@@ -49,7 +49,7 @@ export class UserService {
 
     const { url } = await this.cloudinary.uploadImage(file);
 
-    return await this.prisma.user.update({
+    const updatedUser = await this.prisma.user.update({
       where: { id },
       data: { photo_url: url },
       select: {
@@ -60,6 +60,10 @@ export class UserService {
         email: true,
       },
     });
+
+    this.cloudinary.deleteMedia(user.photo_url);
+
+    return updatedUser;
   }
 
   async updateProfile(id: string, dto: UpdateUserProfileDto) {

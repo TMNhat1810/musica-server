@@ -51,4 +51,23 @@ export class CloudinaryService {
         .end(file.buffer);
     });
   }
+
+  private extractPublicId(url: string | null): string | null {
+    if (!url) return null;
+    const index = url.indexOf('/upload/');
+    const parts = url.substring(index + 8).split('/');
+    parts.shift();
+    const extract = parts.join('/').split('.');
+    if (extract.length > 3) {
+      extract.pop();
+      return extract.join('.');
+    }
+    return extract[0];
+  }
+
+  async deleteMedia(url: string) {
+    const publicId = this.extractPublicId(url);
+    if (!publicId) return;
+    cloudinary.uploader.destroy(publicId);
+  }
 }
