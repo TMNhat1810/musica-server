@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Patch,
-  Post,
   Request,
   UploadedFile,
   UseGuards,
@@ -33,7 +32,7 @@ export class UserController {
     return this.userService.getUserMedia(id);
   }
 
-  @Post('c/avatar')
+  @Patch('c/avatar')
   @ApiConsumes('multipart/form-data')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
