@@ -15,7 +15,7 @@ import { UserService } from './user.service';
 import { AuthGuard } from '../auth/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { isImage } from 'src/common/mimetypes';
-import { UpdateUserProfileDto } from './dtos';
+import { UpdateUserPasswordDto, UpdateUserProfileDto } from './dtos';
 
 @ApiTags('User')
 @Controller('user')
@@ -72,5 +72,16 @@ export class UserController {
   @UseGuards(AuthGuard)
   async updateProfile(@Request() request: any, @Body() dto: UpdateUserProfileDto) {
     return this.userService.updateProfile(request.user.user_id, dto);
+  }
+
+  @Patch('/c/password')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async updatePassword(@Request() request: any, @Body() dto: UpdateUserPasswordDto) {
+    return this.userService.updatePassword(
+      request.user.user_id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 }

@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UpdateUserProfileDto } from './dtos';
+import { hashSync } from 'bcryptjs';
 
 @Injectable()
 export class UserService {
@@ -70,6 +71,28 @@ export class UserService {
     return await this.prisma.user.update({
       where: { id },
       data: { display_name: dto.display_name },
+      select: {
+        id: true,
+        username: true,
+        photo_url: true,
+        display_name: true,
+        email: true,
+      },
+    });
+  }
+
+  async updatePassword(id: string, currentPassword: string, newPassword: string) {
+    const user = await this.prisma.user.findFirst({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (hashSync(currentPassword, user.salt) !== user.password)
+      throw new BadRequestException('Current password is incorrect');
+
+    const hashedPassword = hashSync(newPassword, user.salt);
+
+    return await this.prisma.user.update({
+      where: { id },
+      data: { password: hashedPassword },
       select: {
         id: true,
         username: true,
