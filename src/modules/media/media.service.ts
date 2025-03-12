@@ -164,4 +164,22 @@ export class MediaService {
       },
     });
   }
+
+  async search(query: string) {
+    return await this.prisma.media.findMany({
+      where: {
+        title: { contains: query, mode: 'insensitive' },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            photo_url: true,
+            display_name: true,
+            username: true,
+          },
+        },
+      },
+    });
+  }
 }

@@ -14,6 +14,7 @@ import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { MediaService } from './media.service';
 import {
   GetMediaDto,
+  SearchMediaDto,
   UploadCommentDto,
   UploadMediaDto,
   UploadMediaFilesDto,
@@ -78,6 +79,11 @@ export class MediaController {
       dto.description,
       files,
     );
+  }
+
+  @Get('search')
+  async searchMedias(@Query() dto: SearchMediaDto) {
+    return this.mediaService.search(dto.query);
   }
 
   @Get(':id')
