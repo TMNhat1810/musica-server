@@ -1,16 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import { appConfig } from 'src/configs';
 
 @Injectable()
 export class CloudinaryService {
+  private rootFolder: string;
+
+  constructor() {
+    this.rootFolder = appConfig.production ? 'capstone/prod' : 'capstone/dev';
+  }
+
   async uploadImage(
     file: Express.Multer.File,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: 'image', folder: 'capstone/image' },
+          { resource_type: 'image', folder: `${this.rootFolder}/image` },
           (error: UploadApiErrorResponse, result: UploadApiResponse) => {
             if (error) return reject(error);
             resolve(result);
@@ -26,7 +33,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: 'video', folder: 'capstone/audio' },
+          { resource_type: 'video', folder: `${this.rootFolder}/audio` },
           (error: UploadApiErrorResponse, result: UploadApiResponse) => {
             if (error) return reject(error);
             resolve(result);
@@ -42,7 +49,7 @@ export class CloudinaryService {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream(
-          { resource_type: 'video', folder: 'capstone/video' },
+          { resource_type: 'video', folder: `${this.rootFolder}/video` },
           (error: UploadApiErrorResponse, result: UploadApiResponse) => {
             if (error) return reject(error);
             resolve(result);

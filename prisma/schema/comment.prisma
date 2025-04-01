@@ -1,15 +1,13 @@
 model Comment {
-    id                String         @id @default(uuid())
-    content           String
-    user_id           String
-    user              User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    media_id          String?
-    media             Media?         @relation(fields: [media_id], references: [id], onDelete: Cascade)
-    community_post_id String?
-    community_post    CommunityPost? @relation(fields: [community_post_id], references: [id], onDelete: Cascade)
-    reply_to          String?
-    replies           Comment[]      @relation("CommentReplies")
-    parent            Comment?       @relation("CommentReplies", fields: [reply_to], references: [id], onDelete: Cascade)
+    id       String    @id @default(uuid())
+    content  String
+    user_id  String
+    user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    media_id String?
+    media    Media?    @relation(fields: [media_id], references: [id], onDelete: Cascade)
+    reply_to String?
+    replies  Comment[] @relation("CommentReplies")
+    parent   Comment?  @relation("CommentReplies", fields: [reply_to], references: [id], onDelete: Cascade)
 
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt

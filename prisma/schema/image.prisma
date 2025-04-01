@@ -1,11 +1,11 @@
 model Image {
-    id                String   @id @default(uuid())
-    url               String
-    created_at        DateTime @default(now())
-    updated_at        DateTime @updatedAt
-    community_post_id String?
+    id            String   @id @default(uuid())
+    url           String
+    created_at    DateTime @default(now())
+    updated_at    DateTime @updatedAt
+    forum_post_id String?
 
-    community_post CommunityPost? @relation(fields: [community_post_id], references: [id])
+    forum_post ForumPost? @relation(fields: [forum_post_id], references: [id])
 
-    @@index([community_post_id])
+    @@index([forum_post_id])
 }

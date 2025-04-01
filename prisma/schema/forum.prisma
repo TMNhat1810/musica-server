@@ -1,0 +1,18 @@
+model ForumPost {
+    id         String   @id @default(uuid())
+    title      String
+    type       String
+    content    String
+    user_id    String
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    user   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    images Image[]
+
+    @@index([user_id])
+}
+
+model ForumComment {
+    id String @id @default(uuid())
+}
