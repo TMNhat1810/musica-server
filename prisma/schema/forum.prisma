@@ -7,12 +7,27 @@ model ForumPost {
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt
 
-    user   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    images Image[]
+    user         User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    images       Image[]
+    ForumComment ForumComment[]
 
     @@index([user_id])
 }
 
 model ForumComment {
-    id String @id @default(uuid())
+    id       String         @id @default(uuid())
+    content  String
+    user_id  String
+    user     User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    post_id  String?
+    post     ForumPost?     @relation(fields: [post_id], references: [id], onDelete: Cascade)
+    reply_to String?
+    replies  ForumComment[] @relation("ForumCommentReplies")
+    parent   ForumComment?  @relation("ForumCommentReplies", fields: [reply_to], references: [id], onDelete: Cascade)
+
+    created_at DateTime @default(now())
+    updated_at DateTime @updatedAt
+
+    @@index([post_id])
+    @@index([reply_to])
 }

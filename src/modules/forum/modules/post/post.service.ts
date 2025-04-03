@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/modules/database/services';
 import { UploadPostDto, UploadPostFilesDto } from './dtos';
 import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
+import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
 @Injectable()
 export class PostService {
@@ -9,6 +10,25 @@ export class PostService {
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
   ) {}
+
+  async getForumPosts(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [posts, totalPosts] = await Promise.all([
+      this.prisma.forumPost.findMany({
+        skip: skip,
+        take: limit,
+      }),
+      this.prisma.forumPost.count(),
+    ]);
+
+    return {
+      data: posts,
+      total: totalPosts,
+      totalPages: Math.ceil(totalPosts / limit),
+      currentPage: page,
+    };
+  }
 
   async uploadPost(
     user_id: string,
@@ -35,6 +55,36 @@ export class PostService {
         type: payload.type,
         content: payload.content,
         images: { create: images },
+      },
+    });
+  }
+
+  async getForumPostById(id: string) {
+    const post = await this.prisma.forumPost.findFirst({
+      where: { id },
+      include: {
+        user: {
+          select: SafeUserPayload,
+        },
+        images: true,
+      },
+    });
+
+    if (!post) return new NotFoundException();
+
+    return post;
+  }
+
+  async addCommentToPost(id: string, user_id: string, content: string) {
+    return await this.prisma.forumComment.create({
+      data: {
+        post_id: id,
+        user_id,
+        content,
+      },
+      include: {
+        user: { select: SafeUserPayload },
+        replies: true,
       },
     });
   }

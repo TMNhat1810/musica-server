@@ -20,4 +20,5 @@ model User {
   medias         Media[]
   comments       Comment[]
   forum_posts    ForumPost[]
+  forum_comments ForumComment[]
 }
