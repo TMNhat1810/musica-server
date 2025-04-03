@@ -53,6 +53,11 @@ export class PostController {
     return this.postService.getForumPostById(id);
   }
 
+  @Get(':id/comment')
+  async getForumPostComment(@Param('id') id: string) {
+    return this.postService.getForumPostComment(id);
+  }
+
   @Post(':id/comment')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
@@ -62,5 +67,16 @@ export class PostController {
     @Body() dto: UploadForumPostCommentDto,
   ) {
     return this.postService.addCommentToPost(id, req.user.user_id, dto.content);
+  }
+
+  @Post('comment/:id/reply')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async addReplyToForumComment(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: UploadForumPostCommentDto,
+  ) {
+    return this.postService.addReplyToComment(id, req.user.user_id, dto.content);
   }
 }

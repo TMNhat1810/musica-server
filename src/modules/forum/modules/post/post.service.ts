@@ -75,6 +75,16 @@ export class PostService {
     return post;
   }
 
+  async getForumPostComment(id: string) {
+    return await this.prisma.forumComment.findMany({
+      where: { post_id: id },
+      include: {
+        user: { select: SafeUserPayload },
+        replies: true,
+      },
+    });
+  }
+
   async addCommentToPost(id: string, user_id: string, content: string) {
     return await this.prisma.forumComment.create({
       data: {
@@ -85,6 +95,19 @@ export class PostService {
       include: {
         user: { select: SafeUserPayload },
         replies: true,
+      },
+    });
+  }
+
+  async addReplyToComment(comment_id: string, user_id: string, content: string) {
+    return await this.prisma.forumComment.create({
+      data: {
+        reply_to: comment_id,
+        user_id,
+        content,
+      },
+      include: {
+        user: { select: SafeUserPayload },
       },
     });
   }
