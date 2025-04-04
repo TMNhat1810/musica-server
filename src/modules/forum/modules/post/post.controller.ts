@@ -3,9 +3,11 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Request,
+  UnauthorizedException,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -19,6 +21,7 @@ import {
   UploadPostFilesDto,
   GetPostsDto,
   UploadForumPostCommentDto,
+  UpdatePostDto,
 } from './dtos';
 
 @ApiTags('Forum Post')
@@ -53,6 +56,22 @@ export class PostController {
     return this.postService.getForumPostById(id);
   }
 
+  @Patch(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async updateForumPost(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdatePostDto,
+  ) {
+    const isAuthorized = await this.postService.authorized(req.user.user_id, {
+      post_id: id,
+    });
+    if (!isAuthorized) return new UnauthorizedException();
+
+    return this.postService.editPost(id, dto.new_content);
+  }
+
   @Get(':id/comment')
   async getForumPostComment(@Param('id') id: string) {
     return this.postService.getForumPostComment(id);
@@ -67,6 +86,22 @@ export class PostController {
     @Body() dto: UploadForumPostCommentDto,
   ) {
     return this.postService.addCommentToPost(id, req.user.user_id, dto.content);
+  }
+
+  @Patch('comment/:id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async updateForumComment(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdatePostDto,
+  ) {
+    const isAuthorized = await this.postService.authorized(req.user.user_id, {
+      comment_id: id,
+    });
+    if (!isAuthorized) return new UnauthorizedException();
+
+    return this.postService.editComment(id, dto.new_content);
   }
 
   @Post('comment/:id/reply')

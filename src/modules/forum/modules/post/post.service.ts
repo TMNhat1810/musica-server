@@ -11,6 +11,23 @@ export class PostService {
     private readonly cloudinary: CloudinaryService,
   ) {}
 
+  async authorized(
+    user_id: string,
+    { post_id, comment_id }: { post_id?: string; comment_id?: string },
+  ) {
+    if (post_id) {
+      const post = await this.prisma.forumPost.findFirst({ where: { id: post_id } });
+      if (user_id === post.user_id) return true;
+    }
+    if (comment_id) {
+      const comment = await this.prisma.forumComment.findFirst({
+        where: { id: comment_id },
+      });
+      if (user_id === comment.user_id) return true;
+    }
+    return false;
+  }
+
   async getForumPosts(page: number, limit: number) {
     const skip = (page - 1) * limit;
 
@@ -108,6 +125,24 @@ export class PostService {
       },
       include: {
         user: { select: SafeUserPayload },
+      },
+    });
+  }
+
+  async editPost(id: string, new_content: string) {
+    return await this.prisma.forumPost.update({
+      where: { id },
+      data: {
+        content: new_content,
+      },
+    });
+  }
+
+  async editComment(comment_id: string, new_content: string) {
+    return await this.prisma.forumComment.update({
+      where: { id: comment_id },
+      data: {
+        content: new_content,
       },
     });
   }
