@@ -1,0 +1,16 @@
+model History {
+    id            String        @id @default(uuid())
+    user_id       String
+    action        HistoryAction
+    link_to_media String?
+    media         Media?        @relation(fields: [link_to_media], references: [id])
+    link_to_forum String?
+    post          ForumPost?    @relation(fields: [link_to_forum], references: [id])
+}
+
+enum HistoryAction {
+    view_media
+    like_media
+    view_forum
+    like_forum
+}

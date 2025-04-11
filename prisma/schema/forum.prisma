@@ -12,6 +12,7 @@ model ForumPost {
     ForumComment ForumComment[]
 
     @@index([user_id])
+    History History[]
 }
 
 model ForumComment {

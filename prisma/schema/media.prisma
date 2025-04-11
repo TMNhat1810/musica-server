@@ -18,4 +18,5 @@ model Media {
     comments Comment[]
 
     @@index([user_id])
+    History History[]
 }
