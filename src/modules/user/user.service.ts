@@ -3,6 +3,7 @@ import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UpdateUserProfileDto } from './dtos';
 import { hashSync } from 'bcryptjs';
+import { PaginationDto } from 'src/common/dtos';
 
 @Injectable()
 export class UserService {
@@ -26,22 +27,34 @@ export class UserService {
     return user;
   }
 
-  async getUserMedia(id: string) {
+  async getUserMedia(id: string, pagination: PaginationDto) {
     const user = await this.prisma.user.findFirst({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
-    return await this.prisma.media.findMany({
-      where: { user_id: id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            username: true,
-            photo_url: true,
-            display_name: true,
+
+    const { page, limit } = pagination;
+
+    const [medias, totalRecords] = await Promise.all([
+      this.prisma.media.findMany({
+        where: { user_id: id },
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              display_name: true,
+              username: true,
+              photo_url: true,
+            },
           },
         },
-      },
-    });
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+      this.prisma.media.count({ where: { user_id: id } }),
+    ]);
+    return { medias, totalPages: Math.ceil(totalRecords / limit) };
   }
 
   async updateUserAvatar(id: string, file: Express.Multer.File) {

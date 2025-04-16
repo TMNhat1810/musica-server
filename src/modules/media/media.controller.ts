@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -15,6 +17,7 @@ import { MediaService } from './media.service';
 import {
   GetMediaDto,
   SearchMediaDto,
+  UpdateMediaDto,
   UploadCommentDto,
   UploadMediaDto,
   UploadMediaFilesDto,
@@ -89,6 +92,24 @@ export class MediaController {
   @Get(':id')
   async getMediaById(@Param('id') id: string) {
     return this.mediaService.getMediaById(id);
+  }
+
+  @Patch('id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async updateMedia(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() dto: UpdateMediaDto,
+  ) {
+    return this.mediaService.updateMedia(id, req.user.user_id, dto);
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async deleteMedia(@Request() req: any, @Param('id') id: string) {
+    return this.mediaService.deleteMedia(id, req.user.user_id);
   }
 
   @Get(':id/comment')

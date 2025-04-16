@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Query,
   Request,
   UploadedFile,
   UseGuards,
@@ -16,6 +17,7 @@ import { AuthGuard } from '../auth/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { isImage } from 'src/common/mimetypes';
 import { UpdateUserPasswordDto, UpdateUserProfileDto } from './dtos';
+import { PaginationDto } from 'src/common/dtos';
 
 @ApiTags('User')
 @Controller('user')
@@ -28,8 +30,8 @@ export class UserController {
   }
 
   @Get(':id/media')
-  async getUserMedia(@Param('id') id: string) {
-    return this.userService.getUserMedia(id);
+  async getUserMedia(@Param('id') id: string, @Query() pagination: PaginationDto) {
+    return this.userService.getUserMedia(id, pagination);
   }
 
   @Patch('c/avatar')

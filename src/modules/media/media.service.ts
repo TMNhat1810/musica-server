@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
-import { UploadMediaFilesDto } from './dtos';
+import { UpdateMediaDto, UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { isVideo } from 'src/common/mimetypes';
@@ -181,5 +181,13 @@ export class MediaService {
         },
       },
     });
+  }
+
+  async updateMedia(id: string, user_id: string, data: UpdateMediaDto) {
+    return { id, user_id, data };
+  }
+
+  async deleteMedia(id: string, user_id: string) {
+    return { id, user_id };
   }
 }
