@@ -80,6 +80,7 @@ export class MediaController {
       request.user,
       dto.title,
       dto.description,
+      dto.duration,
       files,
     );
   }

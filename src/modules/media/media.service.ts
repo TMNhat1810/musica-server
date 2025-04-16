@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { UpdateMediaDto, UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
@@ -93,6 +98,7 @@ export class MediaService {
     user: JwtPayload,
     title: string,
     description: string,
+    duration: number,
     files: UploadMediaFilesDto,
   ) {
     if (!files.media) throw new BadRequestException('No media file found');
@@ -114,6 +120,7 @@ export class MediaService {
         title: title.trim(),
         description: description.trim(),
         media_url: media.url,
+        duration,
         thumbnail_url: thumbnail?.url,
         type: isVideo(mediaFile) ? 'video' : 'audio',
         vector_uploaded: vectorUpload.success || false,
@@ -195,6 +202,17 @@ export class MediaService {
   }
 
   async deleteMedia(id: string, user_id: string) {
-    return { id, user_id };
+    const media = await this.prisma.media.findFirst({ where: { id } });
+    if (!media) throw new NotFoundException();
+    if (media.user_id !== user_id) throw new UnauthorizedException();
+
+    const [rsCallback] = await Promise.all([
+      this.recommender.deleteVector(id),
+      this.prisma.media.delete({ where: { id } }),
+      this.cloudinary.deleteMedia(media.media_url),
+      this.cloudinary.deleteImage(media.thumbnail_url),
+    ]);
+
+    return { success: true, rsCallback };
   }
 }

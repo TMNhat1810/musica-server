@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UploadMediaDto {
   @ApiProperty({
@@ -16,6 +17,14 @@ export class UploadMediaDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiProperty({
+    type: 'integer',
+    required: true,
+  })
+  @Type(() => Number)
+  @IsInt()
+  duration: number;
 
   @ApiProperty({
     type: 'string',

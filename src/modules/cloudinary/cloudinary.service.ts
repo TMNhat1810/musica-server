@@ -75,6 +75,12 @@ export class CloudinaryService {
   async deleteMedia(url: string) {
     const publicId = this.extractPublicId(url);
     if (!publicId) return;
-    cloudinary.uploader.destroy(publicId);
+    cloudinary.uploader.destroy(publicId, { resource_type: 'video' });
+  }
+
+  async deleteImage(url: string) {
+    const publicId = this.extractPublicId(url);
+    if (!publicId) return;
+    cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
   }
 }

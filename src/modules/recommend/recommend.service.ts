@@ -26,4 +26,9 @@ export class RecommendService {
       return { success: false };
     }
   }
+
+  async deleteVector(id: string) {
+    const response = await RecommenderSerivce.delete('/vector', { params: { id } });
+    return response.data;
+  }
 }
