@@ -4,19 +4,20 @@ enum MediaType {
 }
 
 model Media {
-    id            String    @id @default(uuid())
-    title         String
-    description   String?
-    user_id       String
-    media_url     String
-    thumbnail_url String?
-    type          MediaType
-    created_at    DateTime  @default(now())
-    updated_at    DateTime  @updatedAt
+    id              String    @id @default(uuid())
+    title           String
+    description     String?
+    user_id         String
+    media_url       String
+    thumbnail_url   String?
+    type            MediaType
+    created_at      DateTime  @default(now())
+    updated_at      DateTime  @updatedAt
+    vector_uploaded Boolean   @default(false)
 
     user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
     comments Comment[]
+    History  History[]
 
     @@index([user_id])
-    History History[]
 }

@@ -4,12 +4,15 @@ import { UpdateMediaDto, UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { isVideo } from 'src/common/mimetypes';
+import { RecommendService } from '../recommend/recommend.service';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class MediaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
+    private readonly recommender: RecommendService,
   ) {}
 
   async getMedias(page: number, limit: number, except?: string) {
@@ -94,22 +97,26 @@ export class MediaService {
   ) {
     if (!files.media) throw new BadRequestException('No media file found');
     const mediaFile = files.media[0];
+    const id = uuid();
 
-    const [media, thumbnail] = await Promise.all([
+    const [media, thumbnail, vectorUpload] = await Promise.all([
       isVideo(mediaFile)
         ? this.cloudinary.uploadVideo(mediaFile)
         : this.cloudinary.uploadAudio(mediaFile),
       files.thumbnail ? this.cloudinary.uploadImage(files.thumbnail[0]) : null,
+      this.recommender.uploadVector(id, title, mediaFile),
     ]);
 
     return await this.prisma.media.create({
       data: {
+        id,
         user_id: user.user_id,
         title: title.trim(),
         description: description.trim(),
         media_url: media.url,
         thumbnail_url: thumbnail?.url,
         type: isVideo(mediaFile) ? 'video' : 'audio',
+        vector_uploaded: vectorUpload.success || false,
       },
     });
   }
