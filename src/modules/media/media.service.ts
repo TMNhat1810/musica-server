@@ -13,6 +13,7 @@ import { RecommendService } from '../recommend/recommend.service';
 import { v4 as uuid } from 'uuid';
 import { extractThumbnail, makeTmp, readThumbnail } from 'src/utils/video';
 import { unlink } from 'fs/promises';
+import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
 @Injectable()
 export class MediaService {
@@ -30,12 +31,7 @@ export class MediaService {
         take: limit,
         include: {
           user: {
-            select: {
-              id: true,
-              display_name: true,
-              username: true,
-              photo_url: true,
-            },
+            select: SafeUserPayload,
           },
         },
         orderBy: {
@@ -48,6 +44,31 @@ export class MediaService {
       medias,
       totalPages: Math.ceil(totalRecords / limit),
     };
+  }
+
+  async getSuggestMedias(page: number, limit: number, from_id: string) {
+    const recommends = (await this.recommender.searchById(from_id)) as any[];
+    if (!recommends) return this.getMedias(page, limit, from_id);
+
+    const [medias, totalRecords] = await Promise.all([
+      this.prisma.media.findMany({
+        where: {
+          id: {
+            in: recommends.map((item) => item.id).filter((id) => id !== from_id),
+          },
+        },
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+        include: {
+          user: {
+            select: SafeUserPayload,
+          },
+        },
+      }),
+      this.prisma.media.count(),
+    ]);
+
+    return { medias, totalRecords };
   }
 
   async getMediaById(id: string) {
@@ -200,21 +221,40 @@ export class MediaService {
   }
 
   async search(query: string) {
-    return await this.prisma.media.findMany({
+    const medias = await this.prisma.media.findMany({
       where: {
         title: { contains: query, mode: 'insensitive' },
       },
       include: {
         user: {
-          select: {
-            id: true,
-            photo_url: true,
-            display_name: true,
-            username: true,
-          },
+          select: SafeUserPayload,
         },
       },
     });
+
+    const fromRecommender = await this.recommender.searchByTitle(query);
+
+    let mediaFromRecommender = [];
+
+    if (fromRecommender) {
+      const ids = fromRecommender
+        .map((item) => item.id)
+        .filter((id) => !medias.map((item) => item.id).includes(id));
+
+      mediaFromRecommender = await this.prisma.media.findMany({
+        where: { id: { in: ids } },
+        include: {
+          user: {
+            select: SafeUserPayload,
+          },
+        },
+      });
+    }
+
+    return {
+      data: medias,
+      from_recommender: fromRecommender ? mediaFromRecommender : null,
+    };
   }
 
   async updateMedia(id: string, user_id: string, data: UpdateMediaDto) {

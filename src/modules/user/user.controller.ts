@@ -16,8 +16,7 @@ import { UserService } from './user.service';
 import { AuthGuard } from '../auth/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { isImage } from 'src/common/mimetypes';
-import { UpdateUserPasswordDto, UpdateUserProfileDto } from './dtos';
-import { PaginationDto } from 'src/common/dtos';
+import { GetUserMedia, UpdateUserPasswordDto, UpdateUserProfileDto } from './dtos';
 
 @ApiTags('User')
 @Controller('user')
@@ -30,8 +29,8 @@ export class UserController {
   }
 
   @Get(':id/media')
-  async getUserMedia(@Param('id') id: string, @Query() pagination: PaginationDto) {
-    return this.userService.getUserMedia(id, pagination);
+  async getUserMedia(@Param('id') id: string, @Query() dto: GetUserMedia) {
+    return this.userService.getUserMedia(id, dto);
   }
 
   @Patch('c/avatar')

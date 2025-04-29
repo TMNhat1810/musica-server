@@ -6,6 +6,8 @@ model History {
     media         Media?        @relation(fields: [link_to_media], references: [id])
     link_to_forum String?
     post          ForumPost?    @relation(fields: [link_to_forum], references: [id])
+    created_at    DateTime      @default(now())
+    updated_at    DateTime      @updatedAt
 }
 
 enum HistoryAction {

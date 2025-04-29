@@ -31,4 +31,26 @@ export class RecommendService {
     const response = await RecommenderSerivce.delete('/vector', { params: { id } });
     return response.data;
   }
+
+  async searchByTitle(title: string) {
+    try {
+      const response = await RecommenderSerivce.get('/search', {
+        params: { title },
+      });
+      return response.data.response;
+    } catch {
+      return null;
+    }
+  }
+
+  async searchById(id: string) {
+    try {
+      const response = await RecommenderSerivce.get('/vector', {
+        params: { id, k: 10 },
+      });
+      return response.data.response;
+    } catch {
+      return null;
+    }
+  }
 }

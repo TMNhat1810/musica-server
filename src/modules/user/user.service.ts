@@ -1,9 +1,8 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { UpdateUserProfileDto } from './dtos';
+import { GetUserMedia, UpdateUserProfileDto } from './dtos';
 import { hashSync } from 'bcryptjs';
-import { PaginationDto } from 'src/common/dtos';
 
 @Injectable()
 export class UserService {
@@ -27,15 +26,26 @@ export class UserService {
     return user;
   }
 
-  async getUserMedia(id: string, pagination: PaginationDto) {
+  async getUserMedia(id: string, dto: GetUserMedia) {
     const user = await this.prisma.user.findFirst({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    const { page, limit } = pagination;
-
+    const { page, limit } = dto;
+    let condition = {};
+    if (dto.query) {
+      condition = {
+        user_id: id,
+        OR: [
+          { id: dto.query },
+          { title: { contains: dto.query, mode: 'insensitive' } },
+        ],
+      };
+    } else {
+      condition = { user_id: id };
+    }
     const [medias, totalRecords] = await Promise.all([
       this.prisma.media.findMany({
-        where: { user_id: id },
+        where: condition,
         skip: ((page - 1) * limit) | 0,
         take: limit,
         include: {
@@ -52,7 +62,7 @@ export class UserService {
           created_at: 'desc',
         },
       }),
-      this.prisma.media.count({ where: { user_id: id } }),
+      this.prisma.media.count({ where: condition }),
     ]);
     return { medias, totalPages: Math.ceil(totalRecords / limit) };
   }
