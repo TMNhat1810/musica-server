@@ -16,7 +16,11 @@ import { UserService } from './user.service';
 import { AuthGuard } from '../auth/guards';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { isImage } from 'src/common/mimetypes';
-import { GetUserMedia, UpdateUserPasswordDto, UpdateUserProfileDto } from './dtos';
+import {
+  GetPaginationByTitleDto,
+  UpdateUserPasswordDto,
+  UpdateUserProfileDto,
+} from './dtos';
 
 @ApiTags('User')
 @Controller('user')
@@ -29,8 +33,19 @@ export class UserController {
   }
 
   @Get(':id/media')
-  async getUserMedia(@Param('id') id: string, @Query() dto: GetUserMedia) {
+  async getUserMedia(
+    @Param('id') id: string,
+    @Query() dto: GetPaginationByTitleDto,
+  ) {
     return this.userService.getUserMedia(id, dto);
+  }
+
+  @Get(':id/post')
+  async getUserForumPost(
+    @Param('id') id: string,
+    @Query() dto: GetPaginationByTitleDto,
+  ) {
+    return this.userService.getUserForumPost(id, dto);
   }
 
   @Patch('c/avatar')

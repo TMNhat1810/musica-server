@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { GetUserMedia, UpdateUserProfileDto } from './dtos';
+import { GetPaginationByTitleDto, UpdateUserProfileDto } from './dtos';
 import { hashSync } from 'bcryptjs';
 
 @Injectable()
@@ -26,7 +26,7 @@ export class UserService {
     return user;
   }
 
-  async getUserMedia(id: string, dto: GetUserMedia) {
+  async getUserMedia(id: string, dto: GetPaginationByTitleDto) {
     const user = await this.prisma.user.findFirst({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
@@ -65,6 +65,47 @@ export class UserService {
       this.prisma.media.count({ where: condition }),
     ]);
     return { medias, totalPages: Math.ceil(totalRecords / limit) };
+  }
+
+  async getUserForumPost(id: string, dto: GetPaginationByTitleDto) {
+    const user = await this.prisma.user.findFirst({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const { page, limit } = dto;
+    let condition = {};
+    if (dto.query) {
+      condition = {
+        user_id: id,
+        OR: [
+          { id: dto.query },
+          { title: { contains: dto.query, mode: 'insensitive' } },
+        ],
+      };
+    } else {
+      condition = { user_id: id };
+    }
+    const [posts, totalRecords] = await Promise.all([
+      this.prisma.forumPost.findMany({
+        where: condition,
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              display_name: true,
+              username: true,
+              photo_url: true,
+            },
+          },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+      this.prisma.forumPost.count({ where: condition }),
+    ]);
+    return { posts, totalPages: Math.ceil(totalRecords / limit) };
   }
 
   async updateUserAvatar(id: string, file: Express.Multer.File) {

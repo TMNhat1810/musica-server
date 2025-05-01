@@ -5,7 +5,7 @@ model Image {
     updated_at    DateTime @updatedAt
     forum_post_id String?
 
-    forum_post ForumPost? @relation(fields: [forum_post_id], references: [id])
+    forum_post ForumPost? @relation(fields: [forum_post_id], references: [id], onDelete: Cascade)
 
     @@index([forum_post_id])
 }

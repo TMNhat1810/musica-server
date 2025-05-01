@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
   Post,
+  Put,
   Query,
   Request,
   UnauthorizedException,
@@ -56,20 +58,30 @@ export class PostController {
     return this.postService.getForumPostById(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'images', maxCount: 20 }]))
   async updateForumPost(
     @Request() req: any,
     @Param('id') id: string,
     @Body() dto: UpdatePostDto,
+    @UploadedFiles() files: UploadPostFilesDto,
   ) {
     const isAuthorized = await this.postService.authorized(req.user.user_id, {
       post_id: id,
     });
     if (!isAuthorized) return new UnauthorizedException();
 
-    return this.postService.editPost(id, dto.new_content);
+    return this.postService.editPost(id, req.user.user_id, dto, files);
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async deleteForumPost(@Request() req: any, @Param('id') id: string) {
+    return this.postService.deleteForumPost(id, req.user.user_id);
   }
 
   @Get(':id/comment')
@@ -94,14 +106,14 @@ export class PostController {
   async updateForumComment(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() dto: UpdatePostDto,
+    @Body() dto: { content: string },
   ) {
     const isAuthorized = await this.postService.authorized(req.user.user_id, {
       comment_id: id,
     });
     if (!isAuthorized) return new UnauthorizedException();
 
-    return this.postService.editComment(id, dto.new_content);
+    return this.postService.editComment(id, dto.content);
   }
 
   @Post('comment/:id/reply')

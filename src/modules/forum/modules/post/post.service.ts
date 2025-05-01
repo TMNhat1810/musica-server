@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/modules/database/services';
-import { UploadPostDto, UploadPostFilesDto } from './dtos';
+import { UpdatePostDto, UploadPostDto, UploadPostFilesDto } from './dtos';
 import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
@@ -97,7 +101,7 @@ export class PostService {
       where: { post_id: id },
       include: {
         user: { select: SafeUserPayload },
-        replies: true,
+        replies: { include: { user: { select: SafeUserPayload } } },
       },
     });
   }
@@ -129,12 +133,44 @@ export class PostService {
     });
   }
 
-  async editPost(id: string, new_content: string) {
+  async editPost(
+    id: string,
+    user_id: string,
+    payload: UpdatePostDto,
+    files: UploadPostFilesDto,
+  ) {
+    let uploadedImages: string[] = [];
+
+    if (files?.images) {
+      uploadedImages = await Promise.all(
+        files.images.map(async (file) => {
+          const result = await this.cloudinary.uploadImage(file);
+          return result.url;
+        }),
+      );
+    }
+
+    const images = uploadedImages.map((url) => ({ url }));
+
+    if (payload.deleteIds.length > 0) {
+      const deleteImages = await this.prisma.image.findMany({
+        where: { id: { in: payload.deleteIds } },
+      });
+
+      deleteImages.forEach((image) => {
+        this.cloudinary.deleteImage(image.url);
+      });
+    }
+
     return await this.prisma.forumPost.update({
       where: { id },
       data: {
-        content: new_content,
+        title: payload.title,
+        type: payload.type,
+        content: payload.content,
+        images: { create: images, deleteMany: { id: { in: payload.deleteIds } } },
       },
+      include: { user: { select: SafeUserPayload }, images: true },
     });
   }
 
@@ -145,5 +181,28 @@ export class PostService {
         content: new_content,
       },
     });
+  }
+
+  async deleteForumPost(id: string, user_id: string) {
+    const post = await this.prisma.forumPost.findFirst({
+      where: {
+        id,
+      },
+      include: {
+        images: true,
+        user: true,
+      },
+    });
+
+    if (!post) throw new NotFoundException();
+    if (post.user.id !== user_id) throw new UnauthorizedException();
+
+    post.images.forEach((image) => {
+      this.cloudinary.deleteImage(image.url).catch();
+    });
+
+    await this.prisma.forumPost.delete({ where: { id } });
+
+    return { success: true };
   }
 }
