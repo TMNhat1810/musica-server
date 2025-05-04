@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtPayload } from 'src/common/interfaces';
 import { PrismaService } from '../database/services';
+import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
 @Injectable()
 export class CommentService {
@@ -22,6 +27,36 @@ export class CommentService {
           },
         },
       },
+    });
+  }
+
+  async editMediaComment(user_id: string, comment_id: string, content: string) {
+    const comment = await this.prisma.comment.findFirst({
+      where: { id: comment_id },
+    });
+
+    if (!comment) throw new NotFoundException();
+    if (comment.user_id !== user_id) throw new UnauthorizedException();
+
+    return await this.prisma.comment.update({
+      where: { id: comment_id },
+      data: { content },
+      include: { user: { select: SafeUserPayload }, replies: true },
+    });
+  }
+
+  async editForumComment(user_id: string, comment_id: string, content: string) {
+    const comment = await this.prisma.forumComment.findFirst({
+      where: { id: comment_id },
+    });
+
+    if (!comment) throw new NotFoundException();
+    if (comment.user_id !== user_id) throw new UnauthorizedException();
+
+    return await this.prisma.forumComment.update({
+      where: { id: comment_id },
+      data: { content },
+      include: { user: { select: SafeUserPayload }, replies: true },
     });
   }
 }
