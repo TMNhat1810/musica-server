@@ -14,6 +14,7 @@ import { v4 as uuid } from 'uuid';
 import { extractThumbnail, makeTmp, readThumbnail } from 'src/utils/video';
 import { unlink } from 'fs/promises';
 import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
+import { SocketGateway } from 'src/socket/socket.gateway';
 
 @Injectable()
 export class MediaService {
@@ -21,6 +22,7 @@ export class MediaService {
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
     private readonly recommender: RecommendService,
+    private readonly socketGatewat: SocketGateway,
   ) {}
 
   async getMedias(page: number, limit: number, except?: string) {
@@ -204,20 +206,19 @@ export class MediaService {
     const media = await this.prisma.media.findFirst({ where: { id: id } });
     if (!media) throw new NotFoundException('Media not found!');
 
-    return await this.prisma.comment.create({
+    const comment = await this.prisma.comment.create({
       data: { user_id: user.user_id, media_id: id, content },
       include: {
         user: {
-          select: {
-            id: true,
-            photo_url: true,
-            display_name: true,
-            username: true,
-          },
+          select: SafeUserPayload,
         },
         replies: true,
       },
     });
+
+    this.socketGatewat.emitToRoom(id, 'comment:new', comment);
+
+    return comment;
   }
 
   async search(query: string) {

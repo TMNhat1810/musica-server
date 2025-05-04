@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Put,
   Query,
@@ -98,22 +97,6 @@ export class PostController {
     @Body() dto: UploadForumPostCommentDto,
   ) {
     return this.postService.addCommentToPost(id, req.user.user_id, dto.content);
-  }
-
-  @Patch('comment/:id')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  async updateForumComment(
-    @Request() req: any,
-    @Param('id') id: string,
-    @Body() dto: { content: string },
-  ) {
-    const isAuthorized = await this.postService.authorized(req.user.user_id, {
-      comment_id: id,
-    });
-    if (!isAuthorized) return new UnauthorizedException();
-
-    return this.postService.editComment(id, dto.content);
   }
 
   @Post('comment/:id/reply')

@@ -7,12 +7,14 @@ import { PrismaService } from 'src/modules/database/services';
 import { UpdatePostDto, UploadPostDto, UploadPostFilesDto } from './dtos';
 import { CloudinaryService } from 'src/modules/cloudinary/cloudinary.service';
 import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
+import { SocketGateway } from 'src/socket/socket.gateway';
 
 @Injectable()
 export class PostService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
+    private readonly socketGateway: SocketGateway,
   ) {}
 
   async authorized(
@@ -107,7 +109,7 @@ export class PostService {
   }
 
   async addCommentToPost(id: string, user_id: string, content: string) {
-    return await this.prisma.forumComment.create({
+    const comment = await this.prisma.forumComment.create({
       data: {
         post_id: id,
         user_id,
@@ -118,10 +120,14 @@ export class PostService {
         replies: true,
       },
     });
+
+    this.socketGateway.emitToRoom(comment.post_id, 'comment:new', comment);
+
+    return comment;
   }
 
   async addReplyToComment(comment_id: string, user_id: string, content: string) {
-    return await this.prisma.forumComment.create({
+    const reply = await this.prisma.forumComment.create({
       data: {
         reply_to: comment_id,
         user_id,
@@ -131,6 +137,16 @@ export class PostService {
         user: { select: SafeUserPayload },
       },
     });
+
+    const parent = await this.prisma.forumComment.findFirst({
+      where: {
+        id: reply.reply_to,
+      },
+    });
+
+    this.socketGateway.emitToRoom(parent.post_id, 'reply:new', reply);
+
+    return reply;
   }
 
   async editPost(
@@ -171,15 +187,6 @@ export class PostService {
         images: { create: images, deleteMany: { id: { in: payload.deleteIds } } },
       },
       include: { user: { select: SafeUserPayload }, images: true },
-    });
-  }
-
-  async editComment(comment_id: string, new_content: string) {
-    return await this.prisma.forumComment.update({
-      where: { id: comment_id },
-      data: {
-        content: new_content,
-      },
     });
   }
 
