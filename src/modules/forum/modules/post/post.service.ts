@@ -41,6 +41,7 @@ export class PostService {
       this.prisma.forumPost.findMany({
         skip: skip,
         take: limit,
+        include: { _count: { select: { ForumComment: true } } },
       }),
       this.prisma.forumPost.count(),
     ]);

@@ -98,6 +98,7 @@ export class UserService {
               photo_url: true,
             },
           },
+          _count: { select: { ForumComment: true } },
         },
         orderBy: {
           created_at: 'desc',

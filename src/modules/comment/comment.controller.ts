@@ -1,16 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CommentService } from './comment.service';
 import { AuthGuard } from '../auth/guards';
-import { EditCommentDto, ReplyCommentDto } from './dtos';
+import { DeleteCommentDto, EditCommentDto, ReplyCommentDto } from './dtos';
 
 @ApiTags('Comment')
 @Controller('comment')
@@ -36,6 +38,19 @@ export class CommentController {
       id,
       dto.content,
     );
+  }
+
+  @Delete(':id')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async deleteComment(
+    @Request() request: any,
+    @Param('id') id: string,
+    @Query() dto: DeleteCommentDto,
+  ) {
+    if (dto.forum)
+      return this.commentService.deleteForumComment(request.user.user_id, id);
+    return this.commentService.deleteMediaComment(request.user.user_id, id);
   }
 
   @Post(':id/reply')

@@ -107,4 +107,49 @@ export class CommentService {
 
     return updatedComment;
   }
+
+  async deleteMediaComment(user_id: string, comment_id: string) {
+    const comment = await this.prisma.comment.findFirst({
+      where: { id: comment_id },
+    });
+
+    if (!comment) throw new NotFoundException();
+    if (comment.user_id !== user_id) throw new UnauthorizedException();
+
+    if (comment.media_id) {
+      this.socketGateway.emitToRoom(comment.media_id, 'comment:delete', comment);
+    } else {
+      const tmp = await this.prisma.comment.findFirst({
+        where: { id: comment.reply_to },
+      });
+
+      this.socketGateway.emitToRoom(tmp.media_id, 'reply:delete', comment);
+    }
+
+    return await this.prisma.comment.delete({ where: { id: comment_id } });
+  }
+
+  async deleteForumComment(user_id: string, comment_id: string) {
+    const comment = await this.prisma.forumComment.findFirst({
+      where: { id: comment_id },
+    });
+
+    if (!comment) throw new NotFoundException();
+    if (comment.user_id !== user_id) throw new UnauthorizedException();
+
+    if (comment.post_id) {
+      this.socketGateway.emitToRoom(comment.post_id, 'comment:delete', comment);
+    } else {
+      const tmp = await this.prisma.forumComment.findFirst({
+        where: { id: comment_id },
+        include: {
+          parent: true,
+        },
+      });
+
+      this.socketGateway.emitToRoom(tmp.parent.post_id, 'reply:delete', comment);
+    }
+
+    return await this.prisma.forumComment.delete({ where: { id: comment_id } });
+  }
 }
