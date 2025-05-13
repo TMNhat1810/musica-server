@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/modules/database/services';
 import { GetUserHistoryDto } from './dtos';
+import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
 @Injectable()
 export class HistoryService {
@@ -16,7 +17,9 @@ export class HistoryService {
         skip: skip,
         take: limit,
         include: {
-          media: true,
+          media: {
+            include: { user: { select: SafeUserPayload } },
+          },
         },
       }),
       this.prisma.history.count({ where: { user_id } }),
