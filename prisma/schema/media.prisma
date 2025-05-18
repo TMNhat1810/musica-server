@@ -17,9 +17,11 @@ model Media {
     updated_at      DateTime  @updatedAt
     vector_uploaded Boolean   @default(false)
 
-    user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
-    comments Comment[]
-    History  History[]
+    user            User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
+    comments        Comment[]
+    History         History[]
+    MediaStatistics MediaStats?
+    ViewLog         ViewLog[]
 
     @@index([user_id])
 }

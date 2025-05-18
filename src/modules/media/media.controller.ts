@@ -22,6 +22,7 @@ import {
   UploadCommentDto,
   UploadMediaDto,
   UploadMediaFilesDto,
+  UploadMediaViewDto,
 } from './dtos';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { isAudio, isImage, isVideo } from 'src/common/mimetypes';
@@ -133,5 +134,20 @@ export class MediaController {
     @Body() dto: UploadCommentDto,
   ) {
     return this.mediaService.uploadComments(request.user, id, dto.content);
+  }
+
+  @Post(':id/view')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async addView(
+    @Param('id') id: string,
+    @Request() request: any,
+    @Body() dto: UploadMediaViewDto,
+  ) {
+    return this.mediaService.addViewLog(
+      id,
+      request.user.user_id,
+      dto.watched_seconds,
+    );
   }
 }

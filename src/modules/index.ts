@@ -4,6 +4,7 @@ import { CommentModule } from './comment/comment.module';
 import { ForumModule } from './forum/forum.module';
 import { HistoryModule } from './history/history.module';
 import { MediaModule } from './media/media.module';
+import { StatisticsModule } from './statistics/statistics.module';
 import { UserModule } from './user/user.module';
 
 export const Modules = [
@@ -13,5 +14,6 @@ export const Modules = [
   CommentModule,
   ForumModule,
   HistoryModule,
+  StatisticsModule,
   CloudinaryModule,
 ];

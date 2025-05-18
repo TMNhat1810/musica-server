@@ -35,6 +35,7 @@ export class MediaService {
           user: {
             select: SafeUserPayload,
           },
+          MediaStatistics: { select: { view_count: true } },
         },
         orderBy: {
           created_at: 'desc',
@@ -65,6 +66,7 @@ export class MediaService {
           user: {
             select: SafeUserPayload,
           },
+          MediaStatistics: { select: { view_count: true } },
         },
       }),
       this.prisma.media.count(),
@@ -78,12 +80,7 @@ export class MediaService {
       where: { id },
       include: {
         user: {
-          select: {
-            id: true,
-            username: true,
-            display_name: true,
-            photo_url: true,
-          },
+          select: SafeUserPayload,
         },
       },
     });
@@ -97,13 +94,9 @@ export class MediaService {
         where: { user_id },
         include: {
           user: {
-            select: {
-              id: true,
-              display_name: true,
-              username: true,
-              photo_url: true,
-            },
+            select: SafeUserPayload,
           },
+          MediaStatistics: { select: { view_count: true } },
         },
         orderBy: {
           created_at: 'desc',
@@ -181,22 +174,12 @@ export class MediaService {
         replies: {
           include: {
             user: {
-              select: {
-                id: true,
-                photo_url: true,
-                display_name: true,
-                username: true,
-              },
+              select: SafeUserPayload,
             },
           },
         },
         user: {
-          select: {
-            id: true,
-            photo_url: true,
-            display_name: true,
-            username: true,
-          },
+          select: SafeUserPayload,
         },
       },
     });
@@ -230,6 +213,7 @@ export class MediaService {
         user: {
           select: SafeUserPayload,
         },
+        MediaStatistics: { select: { view_count: true } },
       },
     });
 
@@ -275,5 +259,30 @@ export class MediaService {
     ]);
 
     return { success: true, rsCallback };
+  }
+
+  async addViewLog(id: string, user_id: string, watched_seconds: number) {
+    await this.prisma.viewLog.create({
+      data: {
+        media_id: id,
+        user_id,
+        watched_seconds,
+      },
+    });
+
+    await this.prisma.mediaStats.upsert({
+      where: { media_id: id },
+      update: {
+        view_count: { increment: 1 },
+        total_watch_seconds: { increment: watched_seconds },
+      },
+      create: {
+        media_id: id,
+        view_count: 1,
+        total_watch_seconds: watched_seconds,
+      },
+    });
+
+    return { success: true };
   }
 }

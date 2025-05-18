@@ -1,0 +1,15 @@
+
+
+model ViewLog {
+    id              String   @id @default(uuid())
+    media_id        String
+    user_id         String?
+    watched_seconds Int
+    viewed_at       DateTime @default(now())
+
+    media Media @relation(fields: [media_id], references: [id])
+
+    @@index([media_id])
+    @@index([viewed_at])
+    @@index([user_id])
+}

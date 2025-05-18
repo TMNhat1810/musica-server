@@ -5,3 +5,4 @@ export * from './upload-comment.dto';
 export * from './search-media.dto';
 export * from './update-media.dto';
 export * from './get-recommend-medias.dto';
+export * from './upload-media-view.dto';
