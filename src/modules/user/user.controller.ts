@@ -18,6 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { isImage } from 'src/common/mimetypes';
 import {
   GetPaginationByTitleDto,
+  SearchUserDto,
   UpdateUserPasswordDto,
   UpdateUserProfileDto,
 } from './dtos';
@@ -26,6 +27,11 @@ import {
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+
+  @Get('search')
+  async searchUsers(@Query() dto: SearchUserDto) {
+    return this.userService.searchUsers(dto);
+  }
 
   @Get(':id')
   async getUserById(@Param('id') id: string) {

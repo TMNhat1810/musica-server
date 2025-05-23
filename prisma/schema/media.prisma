@@ -3,6 +3,12 @@ enum MediaType {
     audio
 }
 
+enum Status {
+    active
+    pending
+    deactive
+}
+
 model Media {
     id              String    @id @default(uuid())
     title           String
@@ -12,6 +18,7 @@ model Media {
     thumbnail_url   String?
     type            MediaType
     duration        Int
+    status          Status    @default(active)
     private         Boolean   @default(false)
     created_at      DateTime  @default(now())
     updated_at      DateTime  @updatedAt

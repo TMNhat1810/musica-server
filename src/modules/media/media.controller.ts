@@ -92,6 +92,11 @@ export class MediaController {
     return this.mediaService.search(dto.query);
   }
 
+  @Get('search/no-rs')
+  async searchMediasWithoutRS(@Query() dto: SearchMediaDto) {
+    return this.mediaService.searchWithoutRS(dto);
+  }
+
   @Get('recommend')
   async getRecommendMediasById(@Query() dto: GetRecommendMediasDto) {
     return this.mediaService.getSuggestMedias(dto.page, dto.limit, dto.from_id);

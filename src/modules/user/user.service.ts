@@ -1,8 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { GetPaginationByTitleDto, UpdateUserProfileDto } from './dtos';
+import {
+  GetPaginationByTitleDto,
+  SearchUserDto,
+  UpdateUserProfileDto,
+} from './dtos';
 import { hashSync } from 'bcryptjs';
+import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 
 @Injectable()
 export class UserService {
@@ -24,6 +29,36 @@ export class UserService {
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
+  }
+
+  async searchUsers(dto: SearchUserDto) {
+    const { query, limit, page } = dto;
+
+    const [users, totalRecords] = await Promise.all([
+      this.prisma.user.findMany({
+        where: {
+          OR: [
+            { id: { contains: query, mode: 'insensitive' } },
+            { display_name: { contains: query, mode: 'insensitive' } },
+            { username: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+        select: SafeUserPayload,
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+      }),
+      this.prisma.user.count({
+        where: {
+          OR: [
+            { id: { contains: query, mode: 'insensitive' } },
+            { display_name: { contains: query, mode: 'insensitive' } },
+            { username: { contains: query, mode: 'insensitive' } },
+          ],
+        },
+      }),
+    ]);
+
+    return { users, totalPages: Math.ceil(totalRecords / limit) };
   }
 
   async getUserMedia(id: string, dto: GetPaginationByTitleDto) {

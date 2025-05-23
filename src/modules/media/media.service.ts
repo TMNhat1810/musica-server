@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/services';
-import { UpdateMediaDto, UploadMediaFilesDto } from './dtos';
+import { SearchMediaDto, UpdateMediaDto, UploadMediaFilesDto } from './dtos';
 import { JwtPayload } from 'src/common/interfaces';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { isVideo } from 'src/common/mimetypes';
@@ -202,6 +202,39 @@ export class MediaService {
     this.socketGatewat.emitToRoom(id, 'comment:new', comment);
 
     return comment;
+  }
+
+  async searchWithoutRS(dto: SearchMediaDto) {
+    const { query, limit, page } = dto;
+    const [medias, totalRecords] = await Promise.all([
+      this.prisma.media.findMany({
+        where: {
+          OR: [
+            { id: dto.query },
+            { title: { contains: query, mode: 'insensitive' } },
+          ],
+          status: 'active',
+        },
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+        include: {
+          user: {
+            select: SafeUserPayload,
+          },
+          MediaStatistics: { select: { view_count: true } },
+        },
+      }),
+      this.prisma.media.count({
+        where: {
+          OR: [
+            { id: dto.query },
+            { title: { contains: query, mode: 'insensitive' } },
+          ],
+          status: 'active',
+        },
+      }),
+    ]);
+    return { medias, totalPages: Math.ceil(totalRecords / limit) };
   }
 
   async search(query: string) {
