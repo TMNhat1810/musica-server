@@ -3,9 +3,9 @@ model History {
     user_id       String
     action        HistoryAction
     link_to_media String?
-    media         Media?        @relation(fields: [link_to_media], references: [id])
+    media         Media?        @relation(fields: [link_to_media], references: [id], onDelete: Cascade)
     link_to_forum String?
-    post          ForumPost?    @relation(fields: [link_to_forum], references: [id])
+    post          ForumPost?    @relation(fields: [link_to_forum], references: [id], onDelete: Cascade)
     created_at    DateTime      @default(now())
     updated_at    DateTime      @updatedAt
 }

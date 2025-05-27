@@ -352,4 +352,36 @@ export class MediaService {
       totalPages: Math.ceil(totalRecords / limit),
     };
   }
+
+  async addLikeMedia(user_id: string, media_id: string) {
+    const record = await this.prisma.history.findFirst({
+      where: { user_id, link_to_media: media_id, action: 'like_media' },
+    });
+
+    if (record) throw new BadRequestException('Already liked media');
+
+    return this.prisma.history.create({
+      data: { user_id, link_to_media: media_id, action: 'like_media' },
+    });
+  }
+
+  async removeLikeMedia(user_id: string, media_id: string) {
+    const record = await this.prisma.history.findFirst({
+      where: { user_id, link_to_media: media_id, action: 'like_media' },
+    });
+
+    if (!record) throw new NotFoundException('Record not found');
+
+    return this.prisma.history.deleteMany({
+      where: { user_id, link_to_media: media_id, action: 'like_media' },
+    });
+  }
+
+  async isUserLikedMedia(user_id: string, media_id: string) {
+    const record = await this.prisma.history.findFirst({
+      where: { user_id, link_to_media: media_id, action: 'like_media' },
+    });
+
+    return { data: !!record };
+  }
 }

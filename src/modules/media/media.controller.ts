@@ -135,6 +135,27 @@ export class MediaController {
     return this.mediaService.deleteMedia(id, req.user.user_id);
   }
 
+  @Get(':id/like')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async isUserLikedMedia(@Request() req: any, @Param('id') id: string) {
+    return this.mediaService.isUserLikedMedia(req.user.user_id, id);
+  }
+
+  @Post(':id/like')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async likeMedia(@Request() req: any, @Param('id') id: string) {
+    return this.mediaService.addLikeMedia(req.user.user_id, id);
+  }
+
+  @Delete(':id/like')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async unlikeMedia(@Request() req: any, @Param('id') id: string) {
+    return this.mediaService.removeLikeMedia(req.user.user_id, id);
+  }
+
   @Get(':id/comment')
   async getComments(@Param('id') id: string) {
     return this.mediaService.getCommentsByMediaId(id);
