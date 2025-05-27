@@ -10,4 +10,12 @@ export class SearchUserDto extends PaginationDto {
   @IsString()
   @IsOptional()
   query: string = '';
+
+  @ApiProperty({
+    type: 'string',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  status: string = 'active';
 }

@@ -318,4 +318,38 @@ export class MediaService {
 
     return { success: true };
   }
+
+  async getPendingMedias(dto: SearchMediaDto) {
+    const { query, page, limit } = dto;
+
+    const [medias, totalRecords] = await Promise.all([
+      this.prisma.media.findMany({
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+        where: {
+          OR: [{ id: query }, { title: { contains: query, mode: 'insensitive' } }],
+          status: 'pending',
+        },
+        include: {
+          user: {
+            select: SafeUserPayload,
+          },
+          MediaStatistics: { select: { view_count: true } },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+      this.prisma.media.count({
+        where: {
+          OR: [{ id: query }, { title: { contains: query, mode: 'insensitive' } }],
+          status: 'pending',
+        },
+      }),
+    ]);
+    return {
+      medias,
+      totalPages: Math.ceil(totalRecords / limit),
+    };
+  }
 }

@@ -26,7 +26,9 @@ import {
 } from './dtos';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { isAudio, isImage, isVideo } from 'src/common/mimetypes';
-import { AuthGuard } from '../auth/guards';
+import { AuthGuard, RoleGuard } from '../auth/guards';
+import { Authorize } from 'src/common/decorators/authorize.decorator';
+import { Role } from 'src/common/enums';
 
 @ApiTags('Media')
 @Controller('media')
@@ -85,6 +87,14 @@ export class MediaController {
       dto.duration,
       files,
     );
+  }
+
+  @Get('/pending')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RoleGuard)
+  @Authorize(Role.ADMIN)
+  async getPendingMedias(@Query() dto: SearchMediaDto) {
+    return this.mediaService.getPendingMedias(dto);
   }
 
   @Get('search')
