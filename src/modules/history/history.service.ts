@@ -8,12 +8,15 @@ export class HistoryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserHistory(user_id: string, dto: GetUserHistoryDto) {
-    const { page, limit } = dto;
+    const { action, page, limit } = dto;
     const skip = (page - 1) * limit;
+
+    const condition =
+      !action || (action as string) === 'all' ? { user_id } : { user_id, action };
 
     const [logs, totalLogs] = await Promise.all([
       this.prisma.history.findMany({
-        where: { user_id },
+        where: condition,
         skip: skip,
         take: limit,
         include: {
@@ -22,7 +25,7 @@ export class HistoryService {
           },
         },
       }),
-      this.prisma.history.count({ where: { user_id } }),
+      this.prisma.history.count({ where: condition }),
     ]);
 
     return {

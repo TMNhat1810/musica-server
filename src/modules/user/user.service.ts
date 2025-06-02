@@ -8,6 +8,7 @@ import {
 } from './dtos';
 import { hashSync } from 'bcryptjs';
 import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
+import { PaginationDto } from 'src/common/dtos';
 
 @Injectable()
 export class UserService {
@@ -19,13 +20,7 @@ export class UserService {
   async getUserById(id: string) {
     const user = await this.prisma.user.findFirst({
       where: { id },
-      select: {
-        id: true,
-        username: true,
-        photo_url: true,
-        display_name: true,
-        email: true,
-      },
+      select: { ...SafeUserPayload, _count: { select: { followers: true } } },
     });
     if (!user) throw new NotFoundException('User not found');
     return user;
@@ -201,5 +196,101 @@ export class UserService {
         email: true,
       },
     });
+  }
+
+  async checkUserFollowing(follower_id: string, followee_id: string) {
+    const record = await this.prisma.follow.findFirst({
+      where: {
+        follower_id,
+        followee_id,
+      },
+    });
+
+    return { data: !!record };
+  }
+
+  async followUser(follower_id: string, followee_id: string) {
+    if (followee_id === follower_id)
+      throw new BadRequestException('Cannot self-follow');
+
+    const record = await this.prisma.follow.findFirst({
+      where: {
+        follower_id,
+        followee_id,
+      },
+    });
+    if (record) throw new BadRequestException('User already followed');
+
+    return this.prisma.follow.create({
+      data: {
+        follower_id,
+        followee_id,
+      },
+    });
+  }
+
+  async unfollowUser(follower_id: string, followee_id: string) {
+    const record = await this.prisma.follow.findFirst({
+      where: {
+        follower_id,
+        followee_id,
+      },
+    });
+
+    if (!record) throw new NotFoundException();
+
+    return this.prisma.follow.deleteMany({
+      where: {
+        follower_id,
+        followee_id,
+      },
+    });
+  }
+
+  async getUserFollowees(user_id: string) {
+    return this.prisma.follow.findMany({
+      where: {
+        follower_id: user_id,
+      },
+      include: {
+        followee: { select: SafeUserPayload },
+      },
+    });
+  }
+
+  async getUserFolloweesMedias(user_id: string, dto: PaginationDto) {
+    const records = await this.prisma.follow.findMany({
+      where: {
+        follower_id: user_id,
+      },
+    });
+
+    const ids: string[] = records.map((record) => record.followee_id);
+    const { page, limit } = dto;
+
+    const [medias, totalRecords] = await Promise.all([
+      this.prisma.media.findMany({
+        where: {
+          user_id: { in: ids },
+          status: 'active',
+        },
+        include: {
+          user: { select: SafeUserPayload },
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+        skip: ((page - 1) * limit) | 0,
+        take: limit,
+      }),
+      this.prisma.media.count({
+        where: {
+          user_id: { in: ids },
+          status: 'active',
+        },
+      }),
+    ]);
+
+    return { medias, totalPages: Math.ceil(totalRecords / limit) };
   }
 }

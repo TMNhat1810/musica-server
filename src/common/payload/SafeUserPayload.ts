@@ -3,4 +3,5 @@ export const SafeUserPayload = {
   username: true,
   display_name: true,
   photo_url: true,
+  email: true,
 };

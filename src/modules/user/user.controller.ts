@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
+  Post,
   Query,
   Request,
   UploadedFile,
@@ -22,6 +24,7 @@ import {
   UpdateUserPasswordDto,
   UpdateUserProfileDto,
 } from './dtos';
+import { PaginationDto } from 'src/common/dtos';
 
 @ApiTags('User')
 @Controller('user')
@@ -52,6 +55,27 @@ export class UserController {
     @Query() dto: GetPaginationByTitleDto,
   ) {
     return this.userService.getUserForumPost(id, dto);
+  }
+
+  @Get(':id/follow')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async checkUserFollowing(@Param('id') id: string, @Request() request: any) {
+    return this.userService.checkUserFollowing(request.user.user_id, id);
+  }
+
+  @Post(':id/follow')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async followUser(@Param('id') id: string, @Request() request: any) {
+    return this.userService.followUser(request.user.user_id, id);
+  }
+
+  @Delete(':id/follow')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async unfollowUser(@Param('id') id: string, @Request() request: any) {
+    return this.userService.unfollowUser(request.user.user_id, id);
   }
 
   @Patch('c/avatar')
@@ -105,5 +129,22 @@ export class UserController {
       dto.currentPassword,
       dto.newPassword,
     );
+  }
+
+  @Get('/c/followee')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async getCurrentUserFollowees(@Request() request: any) {
+    return this.userService.getUserFollowees(request.user.user_id);
+  }
+
+  @Get('/c/followee/media')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async getCurrentUserFollowMedias(
+    @Request() request: any,
+    @Query() dto: PaginationDto,
+  ) {
+    return this.userService.getUserFolloweesMedias(request.user.user_id, dto);
   }
 }
