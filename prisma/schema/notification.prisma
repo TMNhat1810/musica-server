@@ -1,0 +1,17 @@
+model Notification {
+    id         String           @id @default(uuid())
+    user_id    String
+    type       NotificationType
+    message    String
+    media_id   String?
+    created_at DateTime         @default(now())
+    is_read    Boolean          @default(false)
+
+    user  User   @relation(fields: [user_id], references: [id])
+    media Media? @relation(fields: [media_id], references: [id])
+}
+
+enum NotificationType {
+    NEW_MEDIA_UPLOAD
+    NEW_COMMENT
+}

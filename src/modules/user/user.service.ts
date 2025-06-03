@@ -293,4 +293,19 @@ export class UserService {
 
     return { medias, totalPages: Math.ceil(totalRecords / limit) };
   }
+
+  async getUserNotification(user_id: string) {
+    return await this.prisma.notification.findMany({ where: { user_id } });
+  }
+
+  async readAllUserNotification(user_id: string) {
+    return await this.prisma.notification.updateMany({
+      where: {
+        user_id,
+      },
+      data: {
+        is_read: true,
+      },
+    });
+  }
 }

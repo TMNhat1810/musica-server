@@ -21,6 +21,7 @@ model User {
   comments       Comment[]
   forum_posts    ForumPost[]
   forum_comments ForumComment[]
+  notifications  Notification[]
 
   followings Follow[] @relation("FollowerRelation")
   followers  Follow[] @relation("FolloweeRelation")

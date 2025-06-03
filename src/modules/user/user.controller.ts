@@ -147,4 +147,18 @@ export class UserController {
   ) {
     return this.userService.getUserFolloweesMedias(request.user.user_id, dto);
   }
+
+  @Get('/c/notification')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async getCurrentUserNotifications(@Request() request: any) {
+    return this.userService.getUserNotification(request.user.user_id);
+  }
+
+  @Patch('/c/notification/read-all')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async readAllUserNotification(@Request() request: any) {
+    return this.userService.readAllUserNotification(request.user.user_id);
+  }
 }
