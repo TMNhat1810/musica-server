@@ -28,7 +28,7 @@ export class MediaService {
   async getMedias(page: number, limit: number, except?: string) {
     const [medias, totalRecords] = await Promise.all([
       this.prisma.media.findMany({
-        where: { id: { not: except } },
+        where: { id: { not: except }, status: 'active' },
         skip: ((page - 1) * limit) | 0,
         take: limit,
         include: {
@@ -41,7 +41,7 @@ export class MediaService {
           created_at: 'desc',
         },
       }),
-      this.prisma.media.count(),
+      this.prisma.media.count({ where: { id: { not: except }, status: 'active' } }),
     ]);
     return {
       medias,
@@ -59,6 +59,7 @@ export class MediaService {
           id: {
             in: recommends.map((item) => item.id).filter((id) => id !== from_id),
           },
+          status: 'active',
         },
         skip: ((page - 1) * limit) | 0,
         take: limit,
@@ -69,7 +70,7 @@ export class MediaService {
           MediaStatistics: { select: { view_count: true } },
         },
       }),
-      this.prisma.media.count(),
+      this.prisma.media.count({ where: { status: 'active' } }),
     ]);
 
     return { medias, totalRecords };
@@ -91,7 +92,7 @@ export class MediaService {
       this.prisma.media.findMany({
         skip: ((page - 1) * limit) | 0,
         take: limit,
-        where: { user_id },
+        where: { user_id, status: 'active' },
         include: {
           user: {
             select: SafeUserPayload,
@@ -103,7 +104,7 @@ export class MediaService {
         },
       }),
       this.prisma.media.count({
-        where: { user_id },
+        where: { user_id, status: 'active' },
       }),
     ]);
     return {
@@ -241,6 +242,7 @@ export class MediaService {
     const medias = await this.prisma.media.findMany({
       where: {
         title: { contains: query, mode: 'insensitive' },
+        status: 'active',
       },
       include: {
         user: {
@@ -260,7 +262,7 @@ export class MediaService {
         .filter((id) => !medias.map((item) => item.id).includes(id));
 
       mediaFromRecommender = await this.prisma.media.findMany({
-        where: { id: { in: ids } },
+        where: { id: { in: ids }, status: 'active' },
         include: {
           user: {
             select: SafeUserPayload,
@@ -383,5 +385,12 @@ export class MediaService {
     });
 
     return { data: !!record };
+  }
+
+  async approve(media_id: string) {
+    return await this.prisma.media.update({
+      where: { id: media_id },
+      data: { status: 'active' },
+    });
   }
 }

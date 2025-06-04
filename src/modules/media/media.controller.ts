@@ -186,4 +186,12 @@ export class MediaController {
       dto.watched_seconds,
     );
   }
+
+  @Patch(':id/approve')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard, RoleGuard)
+  @Authorize(Role.ADMIN)
+  async approveMedia(@Param('id') id: string) {
+    return this.mediaService.approve(id);
+  }
 }
