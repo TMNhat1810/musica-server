@@ -295,7 +295,23 @@ export class UserService {
   }
 
   async getUserNotification(user_id: string) {
-    return await this.prisma.notification.findMany({ where: { user_id } });
+    return await this.prisma.notification.findMany({
+      where: { user_id },
+      include: { media: { include: { user: { select: SafeUserPayload } } } },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  async getUserUnreadNotification(user_id: string) {
+    const [notifications, totalNotifications] = await Promise.all([
+      this.prisma.notification.findMany({
+        where: { user_id, is_read: false },
+        include: { media: { include: { user: { select: SafeUserPayload } } } },
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.notification.count({ where: { user_id, is_read: false } }),
+    ]);
+    return { notifications, count: totalNotifications };
   }
 
   async readAllUserNotification(user_id: string) {

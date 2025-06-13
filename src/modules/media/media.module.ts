@@ -5,6 +5,7 @@ import { PrismaService } from '../database/services';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { RecommendService } from '../recommend/recommend.service';
 import { SocketGateway } from 'src/socket/socket.gateway';
+import { NotificationService } from '../notification/notification.service';
 
 @Module({
   imports: [],
@@ -12,6 +13,7 @@ import { SocketGateway } from 'src/socket/socket.gateway';
     MediaService,
     PrismaService,
     CloudinaryService,
+    NotificationService,
     RecommendService,
     SocketGateway,
   ],

@@ -15,12 +15,14 @@ import { extractThumbnail, makeTmp, readThumbnail } from 'src/utils/video';
 import { unlink } from 'fs/promises';
 import { SafeUserPayload } from 'src/common/payload/SafeUserPayload';
 import { SocketGateway } from 'src/socket/socket.gateway';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class MediaService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly cloudinary: CloudinaryService,
+    private readonly notificationService: NotificationService,
     private readonly recommender: RecommendService,
     private readonly socketGatewat: SocketGateway,
   ) {}
@@ -150,7 +152,7 @@ export class MediaService {
       ]);
     }
 
-    return await this.prisma.media.create({
+    const newMedia = await this.prisma.media.create({
       data: {
         id,
         user_id: user.user_id,
@@ -163,6 +165,11 @@ export class MediaService {
         vector_uploaded: vectorUpload.success || false,
       },
     });
+
+    if (vectorUpload?.data.label !== 'not-related')
+      this.notificationService.notifyFollowersOnNewMedia(newMedia.id);
+
+    return newMedia;
   }
 
   async getCommentsByMediaId(id: string) {
@@ -200,6 +207,7 @@ export class MediaService {
       },
     });
 
+    this.notificationService.createNewCommentNotification(id);
     this.socketGatewat.emitToRoom(id, 'comment:new', comment);
 
     return comment;
@@ -388,6 +396,7 @@ export class MediaService {
   }
 
   async approve(media_id: string) {
+    this.notificationService.notifyFollowersOnNewMedia(media_id);
     return await this.prisma.media.update({
       where: { id: media_id },
       data: { status: 'active' },

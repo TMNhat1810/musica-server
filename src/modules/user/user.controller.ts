@@ -155,6 +155,13 @@ export class UserController {
     return this.userService.getUserNotification(request.user.user_id);
   }
 
+  @Get('/c/notification/unread')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async getCurrentUserUnreadNotification(@Request() request: any) {
+    return this.userService.getUserUnreadNotification(request.user.user_id);
+  }
+
   @Patch('/c/notification/read-all')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
