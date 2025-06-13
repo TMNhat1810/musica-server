@@ -151,6 +151,7 @@ export class MediaService {
         () => {},
       ]);
     }
+    const approved = !!vectorUpload && vectorUpload?.data.label !== 'not-related';
 
     const newMedia = await this.prisma.media.create({
       data: {
@@ -163,11 +164,11 @@ export class MediaService {
         thumbnail_url: thumbnail?.url,
         type: isVideo(mediaFile) ? 'video' : 'audio',
         vector_uploaded: vectorUpload.success || false,
+        status: approved ? 'active' : 'pending',
       },
     });
 
-    if (vectorUpload?.data.label !== 'not-related')
-      this.notificationService.notifyFollowersOnNewMedia(newMedia.id);
+    if (approved) this.notificationService.notifyFollowersOnNewMedia(newMedia.id);
 
     return newMedia;
   }
