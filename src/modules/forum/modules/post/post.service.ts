@@ -41,7 +41,11 @@ export class PostService {
       this.prisma.forumPost.findMany({
         skip: skip,
         take: limit,
-        include: { _count: { select: { ForumComment: true } } },
+        include: {
+          _count: { select: { ForumComment: true } },
+          user: { select: SafeUserPayload },
+        },
+        orderBy: { created_at: 'desc' },
       }),
       this.prisma.forumPost.count(),
     ]);

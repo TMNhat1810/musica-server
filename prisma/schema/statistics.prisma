@@ -4,7 +4,7 @@ model MediaStats {
     view_count          Int      @default(0)
     total_watch_seconds Int      @default(0)
     updated_at          DateTime @updatedAt
-    Media               Media    @relation(fields: [media_id], references: [id])
+    Media               Media    @relation(fields: [media_id], references: [id], onDelete: Cascade)
 
     @@index([view_count])
     @@index([total_watch_seconds])

@@ -1,5 +1,3 @@
-
-
 model ViewLog {
     id              String   @id @default(uuid())
     media_id        String
@@ -7,7 +5,7 @@ model ViewLog {
     watched_seconds Int
     viewed_at       DateTime @default(now())
 
-    media Media @relation(fields: [media_id], references: [id])
+    media Media @relation(fields: [media_id], references: [id], onDelete: Cascade)
 
     @@index([media_id])
     @@index([viewed_at])

@@ -168,4 +168,18 @@ export class UserController {
   async readAllUserNotification(@Request() request: any) {
     return this.userService.readAllUserNotification(request.user.user_id);
   }
+
+  @Get('/c/liked')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async getCurrentUserLikedMedias(
+    @Request() request: any,
+    @Query() dto: PaginationDto,
+  ) {
+    return this.userService.getUserLikedMedias(
+      request.user.user_id,
+      dto.page,
+      dto.limit,
+    );
+  }
 }

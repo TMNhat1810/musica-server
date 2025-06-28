@@ -33,12 +33,12 @@ export class UserService {
       this.prisma.user.findMany({
         where: {
           OR: [
-            { id: { contains: query, mode: 'insensitive' } },
+            { id: query },
             { display_name: { contains: query, mode: 'insensitive' } },
             { username: { contains: query, mode: 'insensitive' } },
           ],
         },
-        select: SafeUserPayload,
+        select: { ...SafeUserPayload, _count: { select: { followers: true } } },
         skip: ((page - 1) * limit) | 0,
         take: limit,
       }),
@@ -69,9 +69,10 @@ export class UserService {
           { id: dto.query },
           { title: { contains: dto.query, mode: 'insensitive' } },
         ],
+        ...(!dto.allowAll && { status: 'active' }),
       };
     } else {
-      condition = { user_id: id };
+      condition = { user_id: id, ...(!dto.allowAll && { status: 'active' }) };
     }
     const [medias, totalRecords] = await Promise.all([
       this.prisma.media.findMany({
@@ -276,6 +277,7 @@ export class UserService {
         },
         include: {
           user: { select: SafeUserPayload },
+          MediaStatistics: { select: { view_count: true } },
         },
         orderBy: {
           created_at: 'desc',
@@ -323,5 +325,24 @@ export class UserService {
         is_read: true,
       },
     });
+  }
+
+  async getUserLikedMedias(user_id: string, page: number, limit: number) {
+    const [logs, totalRecords] = await Promise.all([
+      this.prisma.history.findMany({
+        where: { user_id, action: 'like_media' },
+        include: {
+          media: {
+            include: {
+              user: { select: SafeUserPayload },
+              MediaStatistics: { select: { view_count: true } },
+            },
+          },
+        },
+        orderBy: { created_at: 'desc' },
+      }),
+      this.prisma.history.count({ where: { user_id, action: 'like_media' } }),
+    ]);
+    return { logs, totalPages: Math.ceil(totalRecords / limit) };
   }
 }

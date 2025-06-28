@@ -22,7 +22,7 @@ export class NotificationService {
 
     await this.prisma.notification.createMany({
       data: followers.map((follower) => ({
-        user_id: follower.id,
+        user_id: follower.follower_id,
         media_id: media.id,
         type: 'NEW_MEDIA_UPLOAD',
       })),

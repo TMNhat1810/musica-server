@@ -24,6 +24,7 @@ export class HistoryService {
             include: { user: { select: SafeUserPayload } },
           },
         },
+        orderBy: { created_at: 'desc' },
       }),
       this.prisma.history.count({ where: condition }),
     ]);

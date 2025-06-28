@@ -51,6 +51,17 @@ export class MediaService {
     };
   }
 
+  async getLikesAndViews(media_id: string) {
+    return await this.prisma.media.findFirst({
+      where: { id: media_id },
+      include: {
+        _count: {
+          select: { ViewLog: true, History: { where: { action: 'like_media' } } },
+        },
+      },
+    });
+  }
+
   async getSuggestMedias(page: number, limit: number, from_id: string) {
     const recommends = (await this.recommender.searchById(from_id)) as any[];
     if (!recommends) return this.getMedias(page, limit, from_id);
@@ -85,6 +96,7 @@ export class MediaService {
         user: {
           select: SafeUserPayload,
         },
+        MediaStatistics: { select: { view_count: true } },
       },
     });
   }
@@ -259,6 +271,7 @@ export class MediaService {
         },
         MediaStatistics: { select: { view_count: true } },
       },
+      take: 30,
     });
 
     const fromRecommender = await this.recommender.searchByTitle(query);
@@ -293,7 +306,10 @@ export class MediaService {
   async deleteMedia(id: string, user_id: string) {
     const media = await this.prisma.media.findFirst({ where: { id } });
     if (!media) throw new NotFoundException();
-    if (media.user_id !== user_id) throw new UnauthorizedException();
+    if (media.user_id !== user_id) {
+      const user = await this.prisma.user.findFirst({ where: { id: user_id } });
+      if (user.role !== 'admin') throw new UnauthorizedException();
+    }
 
     const [rsCallback] = await Promise.all([
       this.recommender.deleteVector(id),
